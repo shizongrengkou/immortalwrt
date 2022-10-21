@@ -1,0 +1,145 @@
+--- a/drivers/net/usb/qmi_wwan.c	
++++ b/drivers/net/usb/qmi_wwan.c
+@@ -1049,6 +1049,11 @@
+ 	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0801)},	/* Quectel RM520N */
+ 
+ 	/* 3. Combined interface devices matching on interface number */
++	{QMI_QUIRK_SET_DTR(0x05c6, 0x9091, 2)},	/* ChinaMobile F03X SDX55 QMI */
++	/*{QMI_QUIRK_SET_DTR(0x2dee, 0x4D22, 5)},*/
++	{QMI_QUIRK_SET_DTR(0x1c9e, 0x9b3c, 4)},
++	{QMI_QUIRK_SET_DTR(0x1c9e, 0x9b05, 4)},
++	{QMI_QUIRK_SET_DTR(0x2020, 0x2040, 4)}, /* BroadMobi 817C */
+ 	{QMI_FIXED_INTF(0x0408, 0xea42, 4)},	/* Yota / Megafon M100-1 */
+ 	{QMI_FIXED_INTF(0x05c6, 0x6001, 3)},	/* 4G LTE usb-modem U901 */
+ 	{QMI_FIXED_INTF(0x05c6, 0x7000, 0)},
+--- a/drivers/usb/serial/option.c
++++ b/drivers/usb/serial/option.c
+@@ -257,6 +257,7 @@
+ #define QUECTEL_PRODUCT_EM12			0x0512
+ #define QUECTEL_PRODUCT_RM500Q			0x0800
+ #define QUECTEL_PRODUCT_RM520N			0x0801
++#define QUECTEL_PRODUCT_RM500U_CN		0x0900
+ #define QUECTEL_PRODUCT_EC200S_CN		0x6002
+ #define QUECTEL_PRODUCT_EC200T			0x6026
+ #define QUECTEL_PRODUCT_RM500K			0x7001
+@@ -392,7 +393,9 @@
+  * Mobidata, etc sell under their own brand names.
+  */
+ #define LONGCHEER_VENDOR_ID			0x1c9e
+-
++#define LONGSUNG_VENDOR_ID			0x1c9e
++#define LONGSUNG_U9300_PRODUCT_ID		0x9b3c
++#define LONGSUNG_U8300_PRODUCT_ID		0x9b05
+ /* 4G Systems products */
+ /* This is the 4G XS Stick W14 a.k.a. Mobilcom Debitel Surf-Stick *
+  * It seems to contain a Qualcomm QSC6240/6290 chipset            */
+@@ -601,6 +604,21 @@
+ 
+ 
+ static const struct usb_device_id option_ids[] = {
++#if 1 //Added by Quectel for RG801H-EA 
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x2c7c, 0x8101, 0xff, 0x02, 0x12) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x2c7c, 0x8101, 0xff, 0x03, 0x12) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x2c7c, 0x8101, 0xff, 0x06, 0x12) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x2c7c, 0x8101, 0xff, 0x02, 0x14) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x2c7c, 0x8101, 0xff, 0x02, 0x13) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x2c7c, 0x8101, 0xff, 0x02, 0x03) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x2c7c, 0x8101, 0xff, 0x02, 0x0a) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x2c7c, 0x8101, 0xff, 0x02, 0x06) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x2c7c, 0x8101, 0xff, 0x02, 0x01) },
++#endif
++	{ USB_DEVICE(LONGSUNG_VENDOR_ID, LONGSUNG_U9300_PRODUCT_ID) }, /* LongSung U9300 LTE modem */
++	{ USB_DEVICE(LONGSUNG_VENDOR_ID, LONGSUNG_U8300_PRODUCT_ID) }, /* LongSung U8300 LTE modem */
++	{ USB_DEVICE( 0x2020, 0x2040 ) },
++	{ USB_DEVICE( 0x05c6, 0x9091 ) },/*FO3X 5Gmodem  QMI*/
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_COLT) },
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA) },
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA_LIGHT) },
+@@ -1154,6 +1172,10 @@
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EM12, 0xff, 0xff, 0xff),
+ 	  .driver_info = RSVD(1) | RSVD(2) | RSVD(3) | RSVD(4) | NUMEP2 },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EM12, 0xff, 0, 0) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_RM500U_CN, 0xff, 0, 0) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_RM500U_CN, 0xff, 0xff, 0x30) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_RM500U_CN, 0xff, 0xff, 0x10),
++	  .driver_info = ZLP },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, 0x0620, 0xff, 0xff, 0x30) },	/* EM160R-GL */
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, 0x0620, 0xff, 0, 0) },
+ 	{ USB_DEVICE_INTERFACE_CLASS(QUECTEL_VENDOR_ID, 0x0700, 0xff), /* BG95 */
+@@ -2211,6 +2233,9 @@
+ #ifdef CONFIG_PM
+ 	.suspend           = usb_wwan_suspend,
+ 	.resume            = usb_wwan_resume,
++#if 1 //Added by Quectel
++	.reset_resume      = usb_wwan_resume,
++#endif
+ #endif
+ };
+ 
+@@ -2238,7 +2263,46 @@
+ 	/* Never bind to the CD-Rom emulation interface	*/
+ 	if (iface_desc->bInterfaceClass == USB_CLASS_MASS_STORAGE)
+ 		return -ENODEV;
++	if(serial->dev->descriptor.idVendor == cpu_to_le16(LONGSUNG_VENDOR_ID) &&
++			serial->dev->descriptor.idProduct == cpu_to_le16(LONGSUNG_U9300_PRODUCT_ID) &&
++			serial->interface->cur_altsetting->desc.bInterfaceNumber == 0){
++		printk("GZZ Discover the 0th interface for 9300 ndis\n");
++		return -ENODEV;
++	}
++
++	if (serial->dev->descriptor.idVendor == cpu_to_le16(LONGSUNG_VENDOR_ID) &&
++			serial->dev->descriptor.idProduct == cpu_to_le16(LONGSUNG_U9300_PRODUCT_ID) &&
++			serial->interface->cur_altsetting->desc.bInterfaceNumber == 4){
++		printk(KERN_INFO"Discover the 4th interface for U9300 NDIS\n");
++		return -ENODEV;
++	}
++
++	if(serial->dev->descriptor.idVendor == cpu_to_le16(LONGSUNG_VENDOR_ID) &&
++			serial->dev->descriptor.idProduct == cpu_to_le16(LONGSUNG_U8300_PRODUCT_ID) &&
++			serial->interface->cur_altsetting->desc.bInterfaceNumber == 4){
++		printk("GZZ Discover the 0th interface for 8300 ndis\n");
++		return -ENODEV;
++	}
++	if(serial->dev->descriptor.idVendor == cpu_to_le16(0x2020) &&
++			serial->dev->descriptor.idProduct == cpu_to_le16(0x2040) &&
++			serial->interface->cur_altsetting->desc.bInterfaceNumber == 4){
++		printk(KERN_INFO"BM817C Ethernet Adapter");
++		return -ENODEV;
++	}
++	
++	if(serial->dev->descriptor.idVendor == cpu_to_le16(0x05c6) &&
++			serial->dev->descriptor.idProduct == cpu_to_le16(0x9091) &&
++			serial->interface->cur_altsetting->desc.bInterfaceNumber == 2){
++		printk(KERN_INFO"ChinaMobile F03X Ethernet Adapter");
++		return -ENODEV;
++	}
+ 
++	if(serial->dev->descriptor.idVendor == cpu_to_le16(0x05c6) &&
++			serial->dev->descriptor.idProduct == cpu_to_le16(0x90D5) &&
++			serial->interface->cur_altsetting->desc.bInterfaceNumber == 2){
++		printk(KERN_INFO"ChinaMobile F03X Ethernet Adapter");
++		return -ENODEV;
++	}
+ 	/*
+ 	 * Don't bind reserved interfaces (like network ones) which often have
+ 	 * the same class/subclass/protocol as the serial interfaces.  Look at
+--- a/drivers/usb/serial/usb_wwan.c
++++ b/drivers/usb/serial/usb_wwan.c
+@@ -477,7 +477,13 @@
+ 	usb_fill_bulk_urb(urb, serial->dev,
+ 			  usb_sndbulkpipe(serial->dev, endpoint) | dir,
+ 			  buf, len, callback, ctx);
+-
++#if 1 //Added by Quectel for zero packet
++	if (dir == USB_DIR_OUT) {
++	struct usb_device_descriptor *desc = &serial->dev->descriptor;
++		if (desc->idVendor == cpu_to_le16(0x2C7C))
++		urb->transfer_flags |= URB_ZERO_PACKET;
++		}
++#endif
+ 	if (intfdata->use_zlp && dir == USB_DIR_OUT)
+ 		urb->transfer_flags |= URB_ZERO_PACKET;
+ 
+ 		urb->transfer_flags |= URB_ZERO_PACKET;
+ 
+ 
