@@ -170,6 +170,12 @@ repeat
 			retval = 2
 			break
 		end
+
+		if drv[i] == "qmi_wwan_q" then
+			retval = 88
+			break
+		end
+
 		if drv[i] == "cdc_mbim" then
 			retval = 3
 			break
@@ -245,3 +251,4 @@ if retval == 0 then
 end
 
 os.exit(retval)
+
