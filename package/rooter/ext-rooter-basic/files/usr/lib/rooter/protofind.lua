@@ -229,7 +229,7 @@ until drv[i] == nil
 
 if retval == 0 then
 	if checkserial() == 1 then
-		retval = 11
+		retval = 88
 		k = 1
 		vendor = special[k]
 		while vendor ~= nil do
